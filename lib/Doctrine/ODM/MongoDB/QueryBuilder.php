@@ -458,16 +458,11 @@ class QueryBuilder
      */
     public function equals($value, array $options = array())
     {
-        if (isset($options['elemMatch'])) {
-            return $this->elemMatch($value, $options);
+        if ($this->currentField) {
+            $this->query[$this->currentField] = $value;
+        } else {
+            $this->query = $value;
         }
-
-        if (isset($options['not'])) {
-            return $this->not($value, $options);
-        }
-
-        $this->query[$this->currentField] = $value;
-
         return $this;
     }
 
@@ -483,54 +478,19 @@ class QueryBuilder
     }
 
     /**
-     * Add element match to query.
-     *
-     * @param string $value
-     * @return Query
-     */
-    public function elemMatch($value)
-    {
-        $e = explode('.', $this->currentField);
-        $fieldName = array_pop($e);
-        $embeddedPath = implode('.', $e);
-        $this->query[$embeddedPath][$this->cmd . 'elemMatch'][$fieldName] = $value;
-        return $this;
-    }
-
-    /**
-     * Add element match operator to the query.
-     *
-     * @param string $operator
-     * @param string $value
-     * @return Query
-     */
-    public function elemMatchOperator($operator, $value)
-    {
-        $e = explode('.', $this->currentField);
-        $fieldName = array_pop($e);
-        $embeddedPath = implode('.', $e);
-        $this->query[$embeddedPath][$this->cmd . 'elemMatch'][$fieldName][$operator] = $value;
-        return $this;
-    }
-
-    /**
      * Add MongoDB operator to the query.
      *
      * @param string $operator
      * @param string $value
-     * @param array $options
      * @return Query
      */
-    public function operator($operator, $value, array $options = array())
+    public function operator($operator, $value)
     {
-        if (isset($options['elemMatch'])) {
-            return $this->elemMatchOperator($operator, $value);
+        if ($this->currentField) {
+            $this->query[$this->currentField][$operator] = $value;
+        } else {
+            $this->query[$operator] = $value;
         }
-        if (isset($options['not'])) {
-            $this->query[$this->currentField][$this->cmd . 'not'][$operator] = $value;
-            return $this;
-        }
-        $this->query[$this->currentField][$operator] = $value;
         return $this;
     }
 
@@ -541,7 +501,7 @@ class QueryBuilder
      * @param array $options
      * @return Query
      */
-    public function not($value, array $options = array())
+    public function not($value)
     {
         return $this->operator($this->cmd . 'not', $value);
     }
@@ -550,84 +510,77 @@ class QueryBuilder
      * Add a new where in criteria.
      *
      * @param mixed $values
-     * @param array $options
      * @return Query
      */
-    public function in($values, array $options = array())
+    public function in($values)
     {
-        return $this->operator($this->cmd . 'in', $values, $options);
+        return $this->operator($this->cmd . 'in', $values);
     }
 
     /**
      * Add where not in criteria.
      *
      * @param mixed $values
-     * @param array $options
      * @return Query
      */
-    public function notIn($values, array $options = array())
+    public function notIn($values)
     {
-        return $this->operator($this->cmd . 'nin', (array) $values, $options);
+        return $this->operator($this->cmd . 'nin', (array) $values);
     }
 
     /**
      * Add where not equal criteria.
      *
      * @param string $value
-     * @param array $options
      * @return Query
      */
-    public function notEqual($value, array $options = array())
+    public function notEqual($value)
     {
-        return $this->operator($this->cmd . 'ne', $value, $options);
+        return $this->operator($this->cmd . 'ne', $value);
     }
 
     /**
      * Add where greater than criteria.
      *
      * @param string $value
-     * @param array $options
      * @return Query
      */
-    public function greaterThan($value, array $options = array())
+    public function greaterThan($value)
     {
-        return $this->operator($this->cmd . 'gt', $value, $options);
+        return $this->operator($this->cmd . 'gt', $value);
     }
 
     /**
      * Add where greater than or equal to criteria.
      *
      * @param string $value
-     * @param array $options
      * @return Query
      */
-    public function greaterThanOrEq($value, array $options = array())
+    public function greaterThanOrEq($value)
     {
-        return $this->operator($this->cmd . 'gte', $value, $options);
+        return $this->operator($this->cmd . 'gte', $value);
     }
 
     /**
      * Add where less than criteria.
      *
      * @param string $value
-     * @param array $options
      * @return Query
      */
-    public function lessThan($value, array $options = array())
+    public function lessThan($value)
     {
-        return $this->operator($this->cmd . 'lt', $value, $options);
+        return $this->operator($this->cmd . 'lt', $value);
     }
 
     /**
      * Add where less than or equal to criteria.
      *
      * @param string $value
-     * @param array $options
      * @return Query
      */
-    public function lessThanOrEq($value, array $options = array())
+    public function lessThanOrEq($value)
     {
-        return $this->operator($this->cmd . 'lte', $value, $options);
+        return $this->operator($this->cmd . 'lte', $value);
     }
 
     /**
@@ -635,47 +588,43 @@ class QueryBuilder
      *
      * @param string $start
      * @param string $end
-     * @param array $options
      * @return Query
      */
-    public function range($start, $end, array $options = array())
+    public function range($start, $end)
     {
-        return $this->operator($this->cmd . 'gte', $start, $options)
-            ->operator($this->cmd . 'lt', $end, $options);
+        return $this->operator($this->cmd . 'gte', $start)
+            ->operator($this->cmd . 'lt', $end);
     }
 
     /**
      * Add where size criteria.
      *
      * @param string $size
-     * @param array $options
      * @return Query
      */
-    public function size($size, array $options = array())
+    public function size($size)
     {
-        return $this->operator($this->cmd . 'size', $size, $options);
+        return $this->operator($this->cmd . 'size', $size);
     }
 
     /**
      * Add where exists criteria.
      *
      * @param string $bool
-     * @param array $options
      * @return Query
      */
-    public function exists($bool, array $options = array())
+    public function exists($bool)
     {
-        return $this->operator($this->cmd . 'exists', $bool, $options);
+        return $this->operator($this->cmd . 'exists', $bool);
     }
 
     /**
      * Add where type criteria.
      *
      * @param string $type
-     * @param array $options
      * @return Query
      */
-    public function type($type, array $options = array())
+    public function type($type)
     {
         $map = array(
             'double' => 1,
@@ -701,31 +650,29 @@ class QueryBuilder
         if (is_string($type) && isset($map[$type])) {
             $type = $map[$type];
         }
-        return $this->operator($this->cmd . 'type', $type, $options);
+        return $this->operator($this->cmd . 'type', $type);
     }
 
     /**
      * Add where all criteria.
      *
      * @param mixed $values
-     * @param array $options
      * @return Query
      */
-    public function all($values, array $options = array())
+    public function all($values)
     {
-        return $this->operator($this->cmd . 'all', (array) $values, $options);
+        return $this->operator($this->cmd . 'all', (array) $values);
     }
 
     /**
      * Add where mod criteria.
      *
      * @param string $mod
-     * @param array $options
      * @return Query
      */
-    public function mod($mod, array $options = array())
+    public function mod($mod)
     {
-        return $this->operator($this->cmd . 'mod', $mod, $options);
+        return $this->operator($this->cmd . 'mod', $mod);
     }
 
     /**
@@ -753,7 +700,11 @@ class QueryBuilder
      */
     public function withinBox($x1, $y1, $x2, $y2)
     {
-        $this->query[$this->currentField][$this->cmd . 'within'][$this->cmd . 'box'] = array(array($x1, $y1), array($x2, $y2));
+        if ($this->currentField) {
+            $this->query[$this->currentField][$this->cmd . 'within'][$this->cmd . 'box'] = array(array($x1, $y1), array($x2, $y2));
+        } else {
+            $this->query[$this->cmd . 'within'][$this->cmd . 'box'] = array(array($x1, $y1), array($x2, $y2));
+        }
         return $this;
     }
 
@@ -767,7 +718,11 @@ class QueryBuilder
      */
     public function withinCenter($x, $y, $radius)
     {
-        $this->query[$this->currentField][$this->cmd . 'within'][$this->cmd . 'center'] = array(array($x, $y), $radius);
+        if ($this->currentField) {
+            $this->query[$this->currentField][$this->cmd . 'within'][$this->cmd . 'center'] = array(array($x, $y), $radius);
+        } else {
+            $this->query[$this->cmd . 'within'][$this->cmd . 'center'] = array(array($x, $y), $radius);
+        }
         return $this;
     }
 
@@ -781,11 +736,17 @@ class QueryBuilder
     {
         $class = $this->dm->getClassMetadata(get_class($document));
 
-        $this->query[$this->currentField][$this->cmd . 'elemMatch'] = array(
+        $reference = array(
             $this->cmd . 'ref' => $class->getCollection(),
             $this->cmd . 'id'  => $class->getDatabaseIdentifierValue($class->getIdentifierValue($document)),
             $this->cmd . 'db'  => $class->getDB()
         );
+
+        if ($this->currentField) {
+            $this->query[$this->currentField][$this->cmd . 'elemMatch'] = $reference;
+        } else {
+            $this->query[$this->cmd . 'elemMatch'] = $reference;
+        }
 
         return $this;
     }
@@ -1055,13 +1016,12 @@ class QueryBuilder
     /**
      * Adds an "or" expression to the current query.
      *
-     * You can create the expression using another query object:
+     * You can create the expression using the expr() method:
      *
      *     $qb = $this->createQueryBuilder('User');
      *     $qb
      *         ->addOr($qb->expr()->field('first_name')->equals('Kris'))
-     *         ->addOr($qb->expr()->field('first_name')->equals('Chris'))
-     *         ->execute();
+     *         ->addOr($qb->expr()->field('first_name')->equals('Chris'));
      *
      * @param array|QueryBuilder $expression
      * @return Query
@@ -1076,6 +1036,58 @@ class QueryBuilder
     }
 
     /**
+     * Adds an "elemMatch" expression to the current query.
+     *
+     * You can create the expression using the expr() method:
+     *
+     *     $qb = $this->createQueryBuilder('User');
+     *     $qb
+     *         ->field('phonenumbers')
+     *         ->addElemMatch($qb->expr()->field('phonenumber')->equals('6155139185'));
+     *
+     * @param array|QueryBuilder $expression
+     * @return Query
+     */
+    public function addElemMatch($expression)
+    {
+        if ($expression instanceof QueryBuilder) {
+            $expression = $expression->getQueryArray();
+        }
+        if ($this->currentField) {
+            $this->query[$this->currentField][$this->cmd . 'elemMatch'] = $expression;
+        } else {
+            $this->query[$this->cmd . 'elemMatch'] = $expression;
+        }
+        return $this;
+    }
+
+    /**
+     * Adds a "not" expression to the current query.
+     *
+     * You can create the expression using the expr() method:
+     *
+     *     $qb = $this->createQueryBuilder('User');
+     *     $qb
+     *         ->field('id')
+     *         ->addNot($qb->expr()->in(1));
+     *
+     * @param array|QueryBuilder $expression
+     * @return Query
+     */
+    public function addNot($expression)
+    {
+        if ($expression instanceof QueryBuilder) {
+            $expression = $expression->getQueryArray();
+        }
+        if ($this->currentField) {
+            $this->query[$this->currentField][$this->cmd . 'not'] = $expression;
+        } else {
+            $this->query[$this->cmd . 'not'] = $expression;
+        }
+        return $this;
+    }
+
+    /**
      * Create a new QueryBuilder instance that can be used as an expression with the addOr()
      * method.
      *
@@ -1084,8 +1096,13 @@ class QueryBuilder
     public function expr()
     {
         $expr = new self($this->dm, $this->hydrator, $this->cmd);
-        $expr->className = $this->className;
-        $expr->class = $this->class;
+        if (isset($this->class->fieldMappings[$this->currentField]['targetDocument'])) {
+            $expr->className = $this->class->fieldMappings[$this->currentField]['targetDocument'];
+            $expr->class = $this->dm->getClassMetadata($expr->className);
+        } else {
+            $expr->className = $this->className;
+            $expr->class = $this->class;
+        }
         return $expr;
     }
 
@@ -1111,9 +1128,16 @@ class QueryBuilder
                     $query->setLimit($this->limit);
                     $query->setHydrate($this->hydrate);
                     return $query;
+                } else if (isset($this->mapReduce['map']) && $this->mapReduce['reduce']) {
+                    $query = new Query\MapReduceQuery($this->dm, $this->class, $this->cmd);
+                    $query->setQuery($this->query);
+                    $query->setMap(isset($this->mapReduce['map']) ? $this->mapReduce['map'] : null);
+                    $query->setReduce(isset($this->mapReduce['reduce']) ? $this->mapReduce['reduce'] : null);
+                    $query->setOptions(isset($this->mapReduce['options']) ? $this->mapReduce['options'] : array());
+                    return $query;
                 } else {
                     $query = new Query\FindQuery($this->dm, $this->class, $this->cmd);
-                    $query->setMapReduce($this->mapReduce);
+                    $query->setReduce(isset($this->mapReduce['reduce']) ? $this->mapReduce['reduce'] : null);
                     $query->setSelect($this->select);
                     $query->setQuery($this->query);
                     $query->setHydrate($this->hydrate);

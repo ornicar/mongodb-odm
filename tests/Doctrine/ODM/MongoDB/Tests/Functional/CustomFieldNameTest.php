@@ -26,7 +26,7 @@ class CustomFieldNameTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
         $this->dm->flush();
         $this->dm->clear();
 
-        $test = $this->dm->findOne(__NAMESPACE__.'\CustomFieldName');
+        $test = $this->dm->find(__NAMESPACE__.'\CustomFieldName', $test->id);
         $this->assertNotNull($test);
         $this->assertEquals('test', $test->username);
     }
@@ -40,7 +40,7 @@ class CustomFieldNameTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
         $this->dm->flush();
         $this->dm->clear();
 
-        $test = $this->dm->findOne(__NAMESPACE__.'\CustomFieldName');
+        $test = $this->dm->find(__NAMESPACE__.'\CustomFieldName', $test->id);
 
         $test->username = 'ok';
         $this->dm->flush();
@@ -59,7 +59,7 @@ class CustomFieldNameTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
         $this->dm->flush();
         $this->dm->clear();
 
-        $test = $this->dm->findOne(__NAMESPACE__.'\CustomFieldName', array('username' => 'test'));
+        $test = $this->dm->getRepository(__NAMESPACE__.'\CustomFieldName')->findOneBy(array('username' => 'test'));
         $this->assertNotNull($test);
         $this->assertEquals('test', $test->username);
     }
@@ -73,7 +73,7 @@ class CustomFieldNameTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
         $this->dm->flush();
         $this->dm->clear();
 
-        $test = $this->dm->find(__NAMESPACE__.'\CustomFieldName', array('username' => 'test'))->getSingleResult();
+        $test = $this->dm->getRepository(__NAMESPACE__.'\CustomFieldName')->findOneBy(array('username' => 'test'));
         $this->assertNotNull($test);
         $this->assertEquals('test', $test->username);
     }
@@ -90,10 +90,6 @@ class CustomFieldNameTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
         $qb = $this->dm->createQueryBuilder(__NAMESPACE__.'\CustomFieldName')->field('username')->equals('test');
         $query = $qb->getQuery();
         $test = $query->getSingleResult();
-        $this->assertNotNull($test);
-        $this->assertEquals('test', $test->username);
-
-        $test = $this->dm->createQuery('find all from '.__NAMESPACE__.'\CustomFieldName where username = ?', 'test')->getSingleResult();
         $this->assertNotNull($test);
         $this->assertEquals('test', $test->username);
     }
