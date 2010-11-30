@@ -21,13 +21,18 @@ namespace Doctrine\ODM\MongoDB\Persisters;
 
 use Doctrine\ODM\MongoDB\PersistentCollection,
     Doctrine\ODM\MongoDB\DocumentManager,
-    Doctrine\ODM\MongoDB\Persisters\DataPreparer,
+    Doctrine\ODM\MongoDB\Persisters\PersistenceBuilder,
     Doctrine\ODM\MongoDB\UnitOfWork,
     Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 
 /**
- * The CollectionPersister is responsible for inserting, updating and deleting collections
- * embedded of referenced documents.
+ * The CollectionPersister is responsible for persisting collections of embedded documents
+ * or referenced documents. When a PersistentCollection is scheduledForDeletion in the UnitOfWork
+ * by calling PersistentCollection::clear() or is de-referenced in the domain application
+ * code it results in a CollectionPersister::delete(). When a single document is removed
+ * from a PersitentCollection it is removed in the call to CollectionPersister::deleteRows()
+ * and new documents added to the PersistentCollection are inserted in the call to
+ * CollectionPersister::insertRows().
  *
  * @license     http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link        www.doctrine-project.com
@@ -46,11 +51,11 @@ class CollectionPersister
     private $dm;
 
     /**
-     * The DataPreparer instance.
+     * The PersistenceBuilder instance.
      *
-     * @var Doctrine\ODM\MongoDB\Persisters\DataPreparer
+     * @var Doctrine\ODM\MongoDB\Persisters\PersistenceBuilder
      */
-    private $dp;
+    private $pb;
 
     /**
      * Mongo command prefix
@@ -63,14 +68,14 @@ class CollectionPersister
      * Contructs a new CollectionPersister instance.
      *
      * @param DocumentManager $dm
-     * @param DataPreparer $dp
+     * @param PersistenceBuilder $pb
      * @param UnitOfWork $uow
      * @param string $cmd
      */
-    public function __construct(DocumentManager $dm, DataPreparer $dp, UnitOfWork $uow, $cmd)
+    public function __construct(DocumentManager $dm, PersistenceBuilder $pb, UnitOfWork $uow, $cmd)
     {
         $this->dm = $dm;
-        $this->dp = $dp;
+        $this->pb = $pb;
         $this->uow = $uow;
         $this->cmd = $cmd;
     }
@@ -143,9 +148,9 @@ class CollectionPersister
             $setData = array();
             foreach ($coll as $document) {
                 if (isset($mapping['reference'])) {
-                    $setData[] = $this->dp->prepareReferencedDocValue($mapping, $document);
+                    $setData[] = $this->pb->prepareReferencedDocValue($mapping, $document);
                 } else {
-                    $setData[] = $this->dp->prepareEmbeddedDocValue($mapping, $document);
+                    $setData[] = $this->pb->prepareEmbeddedDocValue($mapping, $document);
                 }
             }
             $query = array($this->cmd.'set' => array($propertyPath => $setData));
@@ -157,9 +162,9 @@ class CollectionPersister
                 $query = array($this->cmd.$strategy => array());
                 foreach ($insertDiff as $key => $document) {
                     if (isset($mapping['reference'])) {
-                        $query[$this->cmd.$strategy][$propertyPath][] = $this->dp->prepareReferencedDocValue($mapping, $document);
+                        $query[$this->cmd.$strategy][$propertyPath][] = $this->pb->prepareReferencedDocValue($mapping, $document);
                     } else {
-                        $query[$this->cmd.$strategy][$propertyPath][] = $this->dp->prepareEmbeddedDocValue($mapping, $document);
+                        $query[$this->cmd.$strategy][$propertyPath][] = $this->pb->prepareEmbeddedDocValue($mapping, $document);
                     }
                 }
                 $this->executeQuery($parent, $query, $options);
