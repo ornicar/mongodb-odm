@@ -43,7 +43,7 @@ class DriverChainTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
         $classMetadata = new \Doctrine\ODM\MongoDB\Mapping\ClassMetadata($className);
 
         $chain = new DriverChain();
-        
+
         $this->setExpectedException('Doctrine\ODM\MongoDB\MongoDBException');
         $chain->loadMetadataForClass($className, $classMetadata);
     }
@@ -71,6 +71,28 @@ class DriverChainTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
         $this->assertEquals(array('Foo', 'Bar', 'Baz'), $chain->getAllClassNames());
     }
 
+    public function testGatherAllClassNamesHasNoDuplicate()
+    {
+        $className = 'Doctrine\ODM\MongoDB\Tests\Mapping\DriverChainEntity';
+        $classMetadata = new \Doctrine\ODM\MongoDB\Mapping\ClassMetadata($className);
+
+        $chain = new DriverChain();
+
+        $driver1 = $this->getMock('Doctrine\ODM\MongoDB\Mapping\Driver\Driver');
+        $driver1->expects($this->any())
+                ->method('getAllClassNames')
+                ->will($this->returnValue(array('Foo')));
+
+        /**
+         * Reuse the same driver instance for different namespaces
+         * Thats what DoctrineMongoDBBundle generates in the DIC
+         */
+        $chain->addDriver($driver1, 'Doctrine\Tests\Models\Company');
+        $chain->addDriver($driver1, 'Doctrine\ODM\MongoDB\Tests\Mapping');
+
+        $this->assertEquals(array('Foo'), $chain->getAllClassNames());
+    }
+
     /**
      * @group DDC-706
      */
@@ -78,7 +100,7 @@ class DriverChainTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
     {
         $reader = new \Doctrine\Common\Annotations\AnnotationReader(new \Doctrine\Common\Cache\ArrayCache());
         $reader->setDefaultAnnotationNamespace('Doctrine\ODM\MongoDB\Mapping\\');
-        
+
         $chain = new DriverChain();
         $chain->addDriver(new \Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver($reader, array()), 'Documents');
 
@@ -89,5 +111,5 @@ class DriverChainTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
 
 class DriverChainEntity
 {
-    
+
 }
