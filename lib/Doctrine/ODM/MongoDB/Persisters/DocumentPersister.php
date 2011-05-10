@@ -363,10 +363,23 @@ class DocumentPersister
      * @param array $criteria
      * @return array
      */
-    public function loadAll(array $criteria = array())
+    public function loadAll(array $criteria = array(), array $orderBy = null, $limit = null, $offset = null)
     {
         $criteria = $this->prepareQuery($criteria);
         $cursor = $this->collection->find($criteria);
+        
+        if (null !== $orderBy) {
+            $cursor->sort($orderBy);
+        }
+        
+        if (null !== $limit) {
+            $cursor->limit($limit);
+        }
+        
+        if (null !== $offset) {
+            $cursor->skip($offset);
+        }
+        
         return $this->wrapCursor($cursor);
     }
 
@@ -556,18 +569,18 @@ class DocumentPersister
         $ownerClass = $this->dm->getClassMetadata(get_class($owner));
         $criteria = array_merge(
             array($mapping['mappedBy'].'.'.$this->cmd.'id' => $ownerClass->getIdentifierObject($owner)),
-            $mapping['criteria']
+            isset($mapping['criteria']) ? $mapping['criteria'] : array()
         );
         $qb = $this->dm->createQueryBuilder($mapping['targetDocument'])
             ->setQueryArray($criteria);
 
-        if ($mapping['sort']) {
+        if (isset($mapping['sort'])) {
             $qb->sort($mapping['sort']);
         }
-        if ($mapping['limit']) {
+        if (isset($mapping['limit'])) {
             $qb->limit($mapping['limit']);
         }
-        if ($mapping['skip']) {
+        if (isset($mapping['skip'])) {
             $qb->skip($mapping['skip']);
         }
         $query = $qb->getQuery();
