@@ -591,9 +591,17 @@ class ClassMetadataInfo implements \Doctrine\Common\Persistence\Mapping\ClassMet
     {
         $this->indexes[] = array(
             'keys' => array_map(function($value) {
-                $lower = strtolower($value);
-                if ($lower === 'asc' || $lower === 'desc') {
-                    return $lower === 'asc' ? 1 : -1;
+                if ($value == 1 || $value == -1) {
+                    return $value;
+                } elseif(is_string($value)) {
+                    $lower = strtolower($value);
+                    if ($lower === 'asc') {
+                        return 1;
+                    } elseif ($lower === 'desc') {
+                        return -1;
+                    } else {
+                        return $value;
+                    }
                 } else {
                     return $value;
                 }
@@ -1488,5 +1496,25 @@ class ClassMetadataInfo implements \Doctrine\Common\Persistence\Mapping\ClassMet
     public function setLockField($lockField)
     {
         $this->lockField = $lockField;
+    }
+
+    public function getFieldNames()
+    {
+        throw new \BadMethodCallException(__METHOD__.'() is not implemented yet.');
+    }
+
+    public function getAssociationNames()
+    {
+        throw new \BadMethodCallException(__METHOD__.'() is not implemented yet.');
+    }
+
+    public function getTypeOfField($fieldName)
+    {
+        throw new \BadMethodCallException(__METHOD__.'($fieldName) is not implemented yet.');
+    }
+
+    public function getAssociationTargetClass($assocName)
+    {
+        throw new \BadMethodCallException(__METHOD__.'($assocName) is not implemented yet.');
     }
 }

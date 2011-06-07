@@ -263,7 +263,7 @@ class SchemaManagerTest extends \Doctrine\ODM\MongoDB\Tests\BaseTest
         $config->setDefaultDB('doctrine_odm_tests');
 
         $reader = new AnnotationReader();
-        $reader->setDefaultAnnotationNamespace('Doctrine\ODM\MongoDB\Mapping\\');
+        $reader->setAutoloadAnnotations(false);
         $config->setMetadataDriverImpl(new AnnotationDriver($reader, __DIR__ . '/../../../../Documents'));
         return DocumentManagerMock::create($this->getConnection(), $config);
     }

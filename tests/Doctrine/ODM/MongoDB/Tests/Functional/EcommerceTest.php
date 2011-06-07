@@ -31,7 +31,7 @@ class EcommerceTest extends \PHPUnit_Framework_TestCase
         $config->setHydratorNamespace('Hydrators');
 
         $reader = new AnnotationReader();
-        $reader->setDefaultAnnotationNamespace('Doctrine\ODM\MongoDB\Mapping\\');
+        $reader->setAutoloadAnnotations(false);
         $config->setMetadataDriverImpl(new AnnotationDriver($reader, __DIR__ . '/Documents'));
 
         $this->dm = DocumentManager::create(new Connection(), $config);

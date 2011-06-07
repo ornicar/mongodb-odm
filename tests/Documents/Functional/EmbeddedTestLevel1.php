@@ -2,15 +2,14 @@
 
 namespace Documents\Functional;
 
-/**
- * @EmbeddedDocument
- * @HasLifecycleCallbacks
- */
+use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
+
+/** @ODM\EmbeddedDocument */
 class EmbeddedTestLevel1
 {
-    /** @String */
+    /** @ODM\String */
     public $name;
-    /** @EmbedMany(targetDocument="EmbeddedTestLevel2") */
+    /** @ODM\EmbedMany(targetDocument="EmbeddedTestLevel2") */
     public $level2 = array();
 
     public $preRemove = false;
@@ -18,25 +17,25 @@ class EmbeddedTestLevel1
     public $preLoad = false;
     public $postLoad = false;
 
-    /** @PreRemove */
+    /** @ODM\PreRemove */
     public function onPreRemove()
     {
         $this->preRemove = true;
     }
 
-    /** @PostRemove */
+    /** @ODM\PostRemove */
     public function onPostRemove()
     {
         $this->postRemove = true;
     }
 
-    /** @PreLoad */
+    /** @ODM\PreLoad */
     public function onPreLoad()
     {
         $this->preLoad = true;
     }
 
-    /** @PostLoad */
+    /** @ODM\PostLoad */
     public function onPostLoad()
     {
         $this->postLoad = true;

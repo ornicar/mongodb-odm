@@ -19,22 +19,23 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Doctrine\ODM\MongoDB\Mapping;
+namespace Doctrine\ODM\MongoDB\Mapping\Annotations;
 
 use Doctrine\Common\Annotations\Annotation;
 
-final class Document extends Annotation
+abstract class AbstractDocument extends Annotation {}
+final class Document extends AbstractDocument
 {
     public $db;
     public $collection;
     public $repositoryClass;
     public $indexes = array();
 }
-final class EmbeddedDocument extends Annotation
+final class EmbeddedDocument extends AbstractDocument
 {
     public $indexes = array();
 }
-final class MappedSuperclass extends Annotation {}
+final class MappedSuperclass extends AbstractDocument {}
 
 final class Inheritance extends Annotation
 {
@@ -52,7 +53,7 @@ final class DiscriminatorMap extends Annotation {}
 final class DiscriminatorValue extends Annotation {}
 
 final class Indexes extends Annotation {}
-class Index extends Annotation
+abstract class AbstractIndex extends Annotation
 {
     public $keys = array();
     public $name;
@@ -63,7 +64,8 @@ class Index extends Annotation
     public $unique = false;
     public $options = array();
 }
-final class UniqueIndex extends Index
+final class Index extends AbstractIndex {}
+final class UniqueIndex extends AbstractIndex
 {
     public $unique = true;
 }
@@ -71,7 +73,7 @@ final class UniqueIndex extends Index
 final class Version extends Annotation {}
 final class Lock extends Annotation {}
 
-class Field extends Annotation
+abstract class AbstractField extends Annotation
 {
     public $name;
     public $type = 'string';
@@ -79,79 +81,80 @@ class Field extends Annotation
     public $options = array();
     public $strategy;
 }
-final class Id extends Field
+final class Field extends AbstractField {}
+final class Id extends AbstractField
 {
     public $id = true;
     public $type = 'id';
     public $strategy = 'auto';
 }
-final class Hash extends Field
+final class Hash extends AbstractField
 {
     public $type = 'hash';
 }
-final class Boolean extends Field
+final class Boolean extends AbstractField
 {
     public $type = 'boolean';
 }
-final class Int extends Field
+final class Int extends AbstractField
 {
     public $type = 'int';
 }
-final class Float extends Field
+final class Float extends AbstractField
 {
     public $type = 'float';
 }
-final class String extends Field
+final class String extends AbstractField
 {
     public $type = 'string';
 }
-final class Date extends Field
+final class Date extends AbstractField
 {
     public $type = 'date';
 }
-final class Key extends Field
+final class Key extends AbstractField
 {
     public $type = 'key';
 }
-final class Timestamp extends Field
+final class Timestamp extends AbstractField
 {
     public $type = 'timestamp';
 }
-final class Bin extends Field
+final class Bin extends AbstractField
 {
     public $type = 'bin';
 }
-final class BinFunc extends Field
+final class BinFunc extends AbstractField
 {
     public $type = 'bin_func';
 }
-final class BinUUID extends Field
+final class BinUUID extends AbstractField
 {
     public $type = 'bin_uuid';
 }
-final class BinMD5 extends Field
+final class BinMD5 extends AbstractField
 {
     public $type = 'bin_md5';
 }
-final class BinCustom extends Field
+final class BinCustom extends AbstractField
 {
     public $type = 'bin_custom';
 }
-final class File extends Field
+final class File extends AbstractField
 {
     public $type = 'file';
     public $file = true;
 }
-final class Increment extends Field
+final class Increment extends AbstractField
 {
     public $type = 'increment';
 }
-final class Collection extends Field
+final class Collection extends AbstractField
 {
     public $type = 'collection';
     public $strategy = 'pushAll'; // pushAll, set
 }
-final class EmbedOne extends Field
+final class EmbedOne extends AbstractField
 {
     public $type = 'one';
     public $embedded = true;
@@ -159,7 +162,7 @@ final class EmbedOne extends Field
     public $discriminatorField;
     public $discriminatorMap;
 }
-final class EmbedMany extends Field
+final class EmbedMany extends AbstractField
 {
     public $type = 'many';
     public $embedded = true;
@@ -168,7 +171,7 @@ final class EmbedMany extends Field
     public $discriminatorMap;
     public $strategy = 'pushAll'; // pushAll, set
 }
-final class ReferenceOne extends Field
+final class ReferenceOne extends AbstractField
 {
     public $type = 'one';
     public $reference = true;
@@ -184,7 +187,7 @@ final class ReferenceOne extends Field
     public $limit;
     public $skip;
 }
-final class ReferenceMany extends Field
+final class ReferenceMany extends AbstractField
 {
     public $type = 'many';
     public $reference = true;
@@ -201,8 +204,11 @@ final class ReferenceMany extends Field
     public $skip;
     public $strategy = 'pushAll'; // pushAll, set
 }
-class NotSaved extends Field {}
-final class Distance extends Field
+final class NotSaved extends AbstractField
+{
+    public $notSaved = true;
+}
+final class Distance extends AbstractField
 {
     public $distance = true;
 }
@@ -213,7 +219,6 @@ final class AlsoLoad extends Annotation
 final class ChangeTrackingPolicy extends Annotation {}
 
 /* Annotations for lifecycle callbacks */
-final class HasLifecycleCallbacks extends Annotation {}
 final class PrePersist extends Annotation {}
 final class PostPersist extends Annotation {}
 final class PreUpdate extends Annotation {}
