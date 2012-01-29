@@ -347,6 +347,18 @@ class UnitOfWork implements PropertyChangedListener
         $this->persisters[$documentName] = $persister;
     }
 
+    private function lichessPreflush()
+    {
+        $class = 'Bundle\LichessBundle\Document\Game';
+        $documents = $this->documentInsertions + (isset($this->identityMap[$class]) ? $this->identityMap[$class] : array());
+
+        foreach ($documents as $document) {
+            if ($document instanceof $class) {
+                $document->preFlush();
+            }
+        }
+    }
+
     /**
      * Commits the UnitOfWork, executing all operations that have been postponed
      * up to this point. The state of all managed documents will be synchronized with
@@ -362,6 +374,8 @@ class UnitOfWork implements PropertyChangedListener
      */
     public function commit(array $options = array())
     {
+        $this->lichessPreflush();
+
         // Compute changes done since last commit.
         $this->computeChangeSets();
 
