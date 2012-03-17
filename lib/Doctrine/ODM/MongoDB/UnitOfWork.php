@@ -347,15 +347,26 @@ class UnitOfWork implements PropertyChangedListener
         $this->persisters[$documentName] = $persister;
     }
 
-    private function lichessPreflush()
+    private function getLichessGames()
     {
         $class = 'Bundle\LichessBundle\Document\Game';
-        $documents = $this->documentInsertions + (isset($this->identityMap[$class]) ? $this->identityMap[$class] : array());
 
-        foreach ($documents as $document) {
-            if ($document instanceof $class) {
-                $document->preFlush();
-            }
+        return array_filter($this->documentInsertions, function($doc) use ($class) {
+            return $doc instanceof $class;
+        }) + (isset($this->identityMap[$class]) ? $this->identityMap[$class] : array());
+    }
+
+    private function lichessPreflush()
+    {
+        foreach ($this->getLichessGames() as $document) {
+            $document->preFlush();
+        }
+    }
+
+    private function lichessPostflush()
+    {
+        foreach ($this->getLichessGames() as $document) {
+            $document->postFlush();
         }
     }
 
@@ -444,6 +455,8 @@ class UnitOfWork implements PropertyChangedListener
         foreach ($this->visitedCollections as $coll) {
             $coll->takeSnapshot();
         }
+
+        $this->lichessPostflush();
 
         // Clear up
         $this->documentInsertions =
